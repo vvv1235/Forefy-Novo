@@ -2,7 +2,9 @@
   "expo": {
     "scheme": "acme",
     "userInterfaceStyle": "automatic",
-    "orientation": "default",
+    "orientation": "portrait",
+    "icon" : "./assets/images/icon.png",
+
     "web": {
       "output": "static",
       "bundler": "metro"
@@ -16,6 +18,24 @@
       ]
     ],
     "name": "Forefy",
-    "slug": "Forefy"
+    "slug": "Forefy",
+    "extra": {
+      "router": {
+        "origin": "https://n"
+      },
+      "eas": {
+        "projectId": "e4809609-8fc1-4a21-915f-1f88d005c1d5"
+      }
+    },
+    "android": {
+      "package": "com.cobbe.Forefy",
+      "adaptativeIcon" : {
+        "foregroundImage" : "./assets/images/adaptative_icon.png",
+        "backgroundColor" : "#ffffff"
+      }
+    },
+    "ios": {
+      "bundleIdentifier": "com.cobbe.Forefy"
+    }
   }
 }

@@ -1,95 +1,143 @@
-import { Link } from "expo-router";
-import React from "react";
-import { Text, View } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Link } from "expo-router"
+import React, { useEffect, useState } from "react"
+import {
+  Text,
+  TouchableOpacity,
+  View,
+  Image,
+  SafeAreaView,
+  TextInput,
+  Pressable,
+} from "react-native"
+import registerNNPushToken from "native-notify"
+import { getAuth, signInWithEmailAndPassword } from "firebase/auth"
+import Header from "@/components/model/header"
+import Input from "@/components/ui/input"
+import { db, firebaseConfig } from "@/firebase/firebase"
+import { Navigator } from "expo-router"
+import { router } from "expo-router"
+import { initializeApp } from "firebase/app"
+import { auth } from "@/firebase/firebase"
+import axios from "axios"
+import { doc, collection, onSnapshot } from "firebase/firestore"
 
+const PassImage = [
+  {
+    id: "aberto",
+    image: require("../../assets/olho.png"),
+  },
+  {
+    id: "fechado",
+    image: require("../../assets/olhofechado.png"),
+  },
+]
 export default function Page() {
+  registerNNPushToken(20138, "4JBTc36QtaoqYx1LCCWQHE")
+
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [visivel, setVisivel] = useState(false)
+
+  function sendNativeNotifyPush(title, body) {
+    const dateSent = new Date().toLocaleString()
+
+    const notificationData = {
+      appId: 20138,
+      appToken: "4JBTc36QtaoqYx1LCCWQHE",
+      title: title,
+      body: body,
+      dateSent: dateSent,
+    }
+
+    axios
+      .post("https://app.nativenotify.com/api/notification", notificationData)
+      .then((response) => {
+        console.log("Notification sent successfully:", response.data)
+      })
+      .catch((error) => {
+        console.error("Error sending notification:", error)
+      })
+  }
+
+  useEffect(() => {
+    const estadoDoc = doc(collection(db, "Estado"), "IDxjPgTSzh5CFGBztez5") // Reference the document
+    onSnapshot(estadoDoc, (docSnapshot) => {
+      const estadoData = docSnapshot.data() // Get the document's data
+      if (estadoData && estadoData.estado === true) {
+        // Check for 'estado' field and its value
+        sendNativeNotifyPush(
+          "Ó o massacre da Serra Elétrica! 🪚🪚",
+          "O local onde o sensor está corre risco de desmatamento!! "
+        )
+      }
+    })
+  }, [])
+
+  
+
+  function handleSignIn() {
+    // Function to handle sign in
+    signInWithEmailAndPassword(auth, email, password)
+      .then((userCredential) => {
+        // Signed in
+        const user = userCredential.user
+        router.replace("/dashboard")
+        // ...
+      })
+      .catch((error) => {
+        const errorCode = error.code
+        const errorMessage = error.message
+        alert(error.message)
+      })
+  }
   return (
-    <View className="flex flex-1">
+    <View className="flex-1 w-screen bg-zing-200 justify-center items-center">
       <Header />
-      <Content />
-      <Footer />
-    </View>
-  );
-}
-
-function Content() {
-  return (
-    <View className="flex-1">
-      <View className="py-12 md:py-24 lg:py-32 xl:py-48">
-        <View className="container px-4 md:px-6">
-          <View className="flex flex-col items-center gap-4 text-center">
-            <Text
-              role="heading"
-              className="text-3xl text-center native:text-5xl font-bold tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl"
-            >
-              Welcome to Project ACME
-            </Text>
-            <Text className="mx-auto max-w-[700px] text-lg text-center text-gray-500 md:text-xl dark:text-gray-400">
-              Discover and collaborate on amce. Explore our services now.
-            </Text>
-
-            <View className="gap-4">
-              <Link
-                suppressHighlighting
-                className="flex h-9 items-center justify-center overflow-hidden rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-gray-50 shadow transition-colors hover:bg-gray-900/90 active:bg-gray-400/90 web:focus-visible:outline-none web:focus-visible:ring-1 focus-visible:ring-gray-950 disabled:pointer-events-none disabled:opacity-50 dark:bg-gray-50 dark:text-gray-900 dark:hover:bg-gray-50/90 dark:focus-visible:ring-gray-300"
-                href="#"
-              >
-                Explore
-              </Link>
-            </View>
-          </View>
-        </View>
-      </View>
-    </View>
-  );
-}
-
-function Header() {
-  const { top } = useSafeAreaInsets();
-  return (
-    <View style={{ paddingTop: top }}>
-      <View className="px-4 lg:px-6 h-14 flex items-center flex-row justify-between ">
-        <Link className="font-bold flex-1 items-center justify-center" href="#">
-          ACME
+      <Text className="text-3xl uppercase mb-10 font-bold">Faça o Login:</Text>
+      <View className="flex flex-col w-screen items-center gap-2">
+        <TextInput
+          className="border py-4 text-xl w-[70%] rounded-lg px-5"
+          placeholder="Digite seu E-mail"
+          placeholderTextColor={"gray"}
+          value={email}
+          onChange={(e) => {
+            setEmail(e.nativeEvent.text)
+          }}
+          autoCorrect={false}
+          autoCapitalize="none"
+          keyboardType="email-address"
+          textContentType="emailAddress"
+        />
+        <TextInput
+          className="border py-4 text-xl w-[70%] rounded-lg px-5"
+          placeholder="Digite sua Senha"
+          value={password}
+          placeholderTextColor={"gray"}
+          onChange={(e) => {
+            setPassword(e.nativeEvent.text)
+          }}
+          secureTextEntry={!visivel}
+          autoCorrect={false}
+          autoCapitalize="none"
+        />
+        <TouchableOpacity onPress={() => setVisivel(!visivel)}>
+          <Image
+            source={PassImage[visivel ? 1 : 0].image}
+            className="w-10 h-10 absolute bottom-[1.2rem] left-[6.5rem]"
+          />
+        </TouchableOpacity>
+        <TouchableOpacity
+          className="bg-green-600 w-[70%] justify-center items-center py-4 rounded-lg text-xl shadow-lg"
+          onPress={() => handleSignIn()}
+        >
+          <Text className="text-white font-semibold text-xl">Entrar</Text>
+        </TouchableOpacity>
+        <Link href="/cadastro" className="mt-7">
+          <Text>
+            Não tem conta? <Text className="text-green-600">Crie aqui!</Text>
+          </Text>
         </Link>
-        <View className="flex flex-row gap-4 sm:gap-6">
-          <Link
-            className="text-md font-medium hover:underline web:underline-offset-4"
-            href="#"
-          >
-            About
-          </Link>
-          <Link
-            className="text-md font-medium hover:underline web:underline-offset-4"
-            href="#"
-          >
-            Product
-          </Link>
-          <Link
-            className="text-md font-medium hover:underline web:underline-offset-4"
-            href="#"
-          >
-            Pricing
-          </Link>
-        </View>
       </View>
     </View>
-  );
-}
-
-function Footer() {
-  const { bottom } = useSafeAreaInsets();
-  return (
-    <View
-      className="flex shrink-0 bg-gray-100 native:hidden"
-      style={{ paddingBottom: bottom }}
-    >
-      <View className="py-6 flex-1 items-start px-4 md:px-6 ">
-        <Text className={"text-center text-gray-700"}>
-          © {new Date().getFullYear()} Me
-        </Text>
-      </View>
-    </View>
-  );
+  )
 }
